@@ -37,10 +37,11 @@ export default class IpPools {
     })
   }
 
-  async createIpPool ({ name }) {
+  async createIpPool ({ addresses, name }) {
     const id = await this._generateId()
 
     await this._save({
+      addresses,
       id,
       name
     })
