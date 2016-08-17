@@ -1,6 +1,8 @@
 import { NoSuchObject } from '../api-errors'
 import {
+  forEach,
   generateUnsecureToken,
+  isEmpty,
   streamToArray,
   throwFn
 } from '../utils'
@@ -14,9 +16,11 @@ class NoSuchIpPool extends NoSuchObject {
 }
 
 const normalize = ({
+  addresses,
   id = throwFn('id is a required field'),
   name = ''
 }) => ({
+  addresses,
   id,
   name
 })
@@ -67,11 +71,27 @@ export default class IpPools {
   }
 
   async updateIpPool (id, {
+    addresses,
     name
   }) {
     const ipPool = await this.getIpPool(id)
 
     name != null && (ipPool.name = name)
+    if (addresses) {
+      const addresses_ = ipPool.addresses || {}
+      forEach(addresses, (props, address) => {
+        if (props === null) {
+          delete addresses[address]
+        } else {
+          addresses[address] = props
+        }
+      })
+      if (isEmpty(addresses_)) {
+        delete ipPool.addresses
+      } else {
+        ipPool.addresses = addresses
+      }
+    }
 
     await this._save(ipPool)
   }
