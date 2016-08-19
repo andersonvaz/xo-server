@@ -56,13 +56,15 @@ set.params = {
     type: 'array',
     items: {
       type: 'string'
-    }
+    },
+    optional: true
   },
   allowedIpv6Addresses: {
     type: 'array',
     items: {
       type: 'string'
-    }
+    },
+    optional: true
   }
 }
 
