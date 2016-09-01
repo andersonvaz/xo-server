@@ -1,3 +1,8 @@
+import highland from 'highland'
+import findIndex from 'lodash/findIndex'
+import includes from 'lodash/includes'
+import { fromCallback } from 'promise-toolbox'
+
 import { NoSuchObject } from '../api-errors'
 import {
   forEach,
@@ -74,6 +79,29 @@ export default class IpPools {
     })
   }
 
+  allocIpAddress (address, vifId) {
+    return this._getForAddress(address).then(ipPool => {
+      const data = ipPool.addresses[address]
+      const vifs = data.vifs || (data.vifs = [])
+      if (!includes(vifs, vifId)) {
+        vifs.push(vifId)
+        return this._save(ipPool)
+      }
+    })
+  }
+
+  deallocIpAddress (address, vifId) {
+    return this._getForAddress(address).then(ipPool => {
+      const data = ipPool.addresses[address]
+      const vifs = data.vifs || (data.vifs = [])
+      const i = findIndex(vifs, id => id === vifId)
+      if (i !== -1) {
+        vifs.splice(i, 1)
+        return this._save(ipPool)
+      }
+    })
+  }
+
   async updateIpPool (id, {
     addresses,
     name,
@@ -86,30 +114,30 @@ export default class IpPools {
       const addresses_ = ipPool.addresses || {}
       forEach(addresses, (props, address) => {
         if (props === null) {
-          delete addresses[address]
+          delete addresses_[address]
         } else {
-          addresses[address] = props
+          addresses_[address] = props
         }
       })
       if (isEmpty(addresses_)) {
         delete ipPool.addresses
       } else {
-        ipPool.addresses = addresses
+        ipPool.addresses = addresses_
       }
     }
     if (networks) {
       const networks_ = ipPool.networks || {}
       forEach(networks, (props, network) => {
         if (props === null) {
-          delete networks[network]
+          delete networks_[network]
         } else {
-          networks[network] = props
+          networks_[network] = props
         }
       })
       if (isEmpty(networks_)) {
         delete ipPool.networks
       } else {
-        ipPool.networks = networks
+        ipPool.networks = networks_
       }
     }
 
@@ -122,6 +150,15 @@ export default class IpPools {
       id = generateUnsecureToken(8)
     } while (await this._store.has(id))
     return id
+  }
+
+  _getForAddress (address) {
+    return fromCallback(cb => {
+      highland(this._store.createValueStream()).find(ipPool => {
+        const { addresses } = ipPool
+        return addresses && addresses[address]
+      }).pull(cb)
+    })
   }
 
   _save (ipPool) {

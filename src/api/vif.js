@@ -1,5 +1,21 @@
+import forEach from 'lodash/forEach'
+
+import {
+  noop,
+  pCatch
+} from '../utils'
+
+// ===================================================================
+
 // TODO: move into vm and rename to removeInterface
 async function delete_ ({vif}) {
+  const { id } = vif
+  const dealloc = address => {
+    this.deallocIpAddress(address, id)::pCatch(noop)
+  }
+  forEach(vif.allowedIpv4Addresses, dealloc)
+  forEach(vif.allowedIpv6Addresses, dealloc)
+
   await this.getXapi(vif).deleteVif(vif._xapiId)
 }
 export {delete_ as delete}
