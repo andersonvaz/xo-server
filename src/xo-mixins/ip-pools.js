@@ -18,11 +18,13 @@ class NoSuchIpPool extends NoSuchObject {
 const normalize = ({
   addresses,
   id = throwFn('id is a required field'),
-  name = ''
+  name = '',
+  networks
 }) => ({
   addresses,
   id,
-  name
+  name,
+  networks
 })
 
 // ===================================================================
@@ -37,13 +39,14 @@ export default class IpPools {
     })
   }
 
-  async createIpPool ({ addresses, name }) {
+  async createIpPool ({ addresses, name, networks }) {
     const id = await this._generateId()
 
     await this._save({
       addresses,
       id,
-      name
+      name,
+      networks
     })
 
     return id
@@ -73,7 +76,8 @@ export default class IpPools {
 
   async updateIpPool (id, {
     addresses,
-    name
+    name,
+    networks
   }) {
     const ipPool = await this.getIpPool(id)
 
@@ -91,6 +95,21 @@ export default class IpPools {
         delete ipPool.addresses
       } else {
         ipPool.addresses = addresses
+      }
+    }
+    if (networks) {
+      const networks_ = ipPool.networks || {}
+      forEach(networks, (props, network) => {
+        if (props === null) {
+          delete networks[network]
+        } else {
+          networks[network] = props
+        }
+      })
+      if (isEmpty(networks_)) {
+        delete ipPool.networks
+      } else {
+        ipPool.networks = networks
       }
     }
 
