@@ -74,6 +74,27 @@ export const createRawObject = Object.create
 
 // -------------------------------------------------------------------
 
+// Only works with string items!
+export const diffItems = (coll1, coll2) => {
+  const removed = createRawObject()
+  forEach(coll2, value => {
+    removed[value] = true
+  })
+
+  const added = []
+  forEach(coll1, value => {
+    if (value in removed) {
+      delete removed[value]
+    } else {
+      added.push(value)
+    }
+  })
+
+  return [ added, keys(removed) ]
+}
+
+// -------------------------------------------------------------------
+
 const ALGORITHM_TO_ID = {
   md5: '1',
   sha256: '5',
