@@ -80,6 +80,8 @@ export default class IpPools {
   }
 
   allocIpAddress (address, vifId) {
+    // FIXME: does not work correctly if the address is in multiple
+    // pools.
     return this._getForAddress(address).then(ipPool => {
       const data = ipPool.addresses[address]
       const vifs = data.vifs || (data.vifs = [])
