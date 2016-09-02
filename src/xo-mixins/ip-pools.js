@@ -127,20 +127,10 @@ export default class IpPools {
         ipPool.addresses = addresses_
       }
     }
+
+    // TODO: Implement patching like for addresses.
     if (networks) {
-      const networks_ = ipPool.networks || {}
-      forEach(networks, (props, network) => {
-        if (props === null) {
-          delete networks_[network]
-        } else {
-          networks_[network] = props
-        }
-      })
-      if (isEmpty(networks_)) {
-        delete ipPool.networks
-      } else {
-        ipPool.networks = networks_
-      }
+      ipPool.networks = networks
     }
 
     await this._save(ipPool)
